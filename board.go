@@ -55,7 +55,10 @@ func (gameBoard *GameBoard) GetText(row, col int) string {
 	return (*gameBoard).Board[row][col].Text
 }
 
-func (gameBoard *GameBoard) ResetBoard() *GameBoard {
-	gameBoard.Board = gameBoard.createEmptyBoard()
-	return gameBoard
+func (gameBoard *GameBoard) ResetBoard() {
+	for i := range gameBoard.Board {
+		for _, button := range gameBoard.Board[i] {
+			button.SetText("")
+		}
+	}
 }
