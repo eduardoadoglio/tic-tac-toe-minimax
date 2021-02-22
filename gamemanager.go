@@ -7,10 +7,6 @@ type GameManager struct {
 	CurrentPlayer string
 }
 
-func (gameManager *GameManager) getBoardSize() int {
-	return gameManager.Board.Size
-}
-
 func NewGameManager(boardSize int) *GameManager{
 	fmt.Println("-- Creating new GameManager object")
 	gameManager := &GameManager{
@@ -20,12 +16,34 @@ func NewGameManager(boardSize int) *GameManager{
 	return gameManager
 }
 
+func (gameManager *GameManager) getBoardSize() int {
+	return gameManager.Board.Size
+}
+
 func (gameManager *GameManager) setCurrentPlayer(currentPlayer string) {
 	gameManager.CurrentPlayer = currentPlayer
 }
 
+func (gameManager *GameManager) handleAiMove() {
+	gameBoard := gameManager.Board
+	for i := range gameBoard.Board {
+		for j, button := range gameBoard.Board[i] {
+			if button.Text == "" {
+				gameBoard.SetText("O", i, j)
+				gameManager.setCurrentPlayer("X")
+				return
+			}
+		}
+	}
+}
+
 func (gameManager *GameManager) HandleCurrentTurn(row, col int) func() {
 	return func(){
-		gameManager.Board.SetText("X", row, col)
+		gameBoard := gameManager.Board
+		if gameManager.CurrentPlayer == "X" && gameBoard.GetText(row, col) == "" {
+			gameBoard.SetText("X", row, col)
+			gameManager.setCurrentPlayer("O")
+			gameManager.handleAiMove()
+		}
 	}
 }
