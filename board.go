@@ -1,42 +1,61 @@
 package main
 
-import "fyne.io/fyne/v2/widget"
+import (
+	"fmt"
+	"fyne.io/fyne/v2/widget"
+)
 
-type Board [][]*widget.Button
-
-func (board *Board) NewBoard(size int) *Board {
-	newBoard := make(Board, size)
-	for i := range newBoard {
-		newBoard[i] = make([]*widget.Button, size)
-	}
-	newBoard.initBoard()
-	return &newBoard
+type GameBoard struct {
+	Board [][]*widget.Button
+	Size int
+	OnPressed func (int, int) func()
 }
 
-func (board *Board) initBoard() *Board{
-	for i := range *board {
-		for j := range (*board)[i] {
-			button := widget.NewButton("", HandleCurrentTurn(i, j))
-			board.SetButtonAtIndex(button, i, j)
+func NewBoard(size int, onPressed func(int, int) func()) *GameBoard {
+	fmt.Println("-- Creating new board object")
+	gameBoard := &GameBoard{
+		Size: size,
+		OnPressed: onPressed,
+	}
+	gameBoard.Board = gameBoard.createEmptyBoard()
+	return gameBoard
+}
+
+func (gameBoard *GameBoard) createEmptyBoard() [][]*widget.Button{
+	fmt.Println("-- Creating empty board")
+	newBoard := make([][]*widget.Button, gameBoard.Size)
+	for i := range newBoard {
+		newBoard[i] = make([]*widget.Button, gameBoard.Size)
+	}
+	gameBoard.Board = newBoard
+	return gameBoard.initBoard()
+}
+
+func (gameBoard *GameBoard) initBoard() [][]*widget.Button{
+	fmt.Println("-- Initializing empty board")
+	for i := range (*gameBoard).Board {
+		for j := range (*gameBoard).Board[i] {
+			button := widget.NewButton("", (*gameBoard).OnPressed(i, j))
+			gameBoard.SetButtonAtIndex(button, i, j)
 		}
 	}
-	return board
+	return gameBoard.Board
 }
 
-func (board *Board) SetButtonAtIndex(button *widget.Button, row, col int) *Board{
-	(*board)[row][col] = button
-	return board
+func (gameBoard *GameBoard) SetButtonAtIndex(button *widget.Button, row, col int) *GameBoard{
+	(*gameBoard).Board[row][col] = button
+	return gameBoard
 }
 
-func (board *Board) SetText(value string, row, col int) *Board {
-	(*board)[row][col].SetText(value)
-	return board
+func (gameBoard *GameBoard) SetText(value string, row, col int) {
+	(*gameBoard).Board[row][col].SetText(value)
 }
 
-func (board *Board) GetText(row, col int) string {
-	return (*board)[row][col].Text
+func (gameBoard *GameBoard) GetText(row, col int) string {
+	return (*gameBoard).Board[row][col].Text
 }
 
-func (board *Board) ResetBoard() *Board {
-	return board.NewBoard(len(*(board)))
+func (gameBoard *GameBoard) ResetBoard() *GameBoard {
+	gameBoard.Board = gameBoard.createEmptyBoard()
+	return gameBoard
 }
