@@ -24,6 +24,18 @@ func (gameManager *GameManager) setCurrentPlayer(currentPlayer string) {
 	gameManager.CurrentPlayer = currentPlayer
 }
 
+func (gameManager *GameManager) handleAiMove() {
+	gameBoard := gameManager.Board
+	for i := range gameBoard.Board {
+		for j, button := range gameBoard.Board[i] {
+			if button.Text == "" {
+				gameBoard.SetText("O", i, j)
+				gameManager.setCurrentPlayer("X")
+				return
+			}
+		}
+	}
+}
 
 func (gameManager *GameManager) HandleCurrentTurn(row, col int) func() {
 	return func(){
@@ -31,6 +43,7 @@ func (gameManager *GameManager) HandleCurrentTurn(row, col int) func() {
 		if gameManager.CurrentPlayer == "X" && gameBoard.GetText(row, col) == "" {
 			gameBoard.SetText("X", row, col)
 			gameManager.setCurrentPlayer("O")
+			gameManager.handleAiMove()
 		}
 	}
 }
