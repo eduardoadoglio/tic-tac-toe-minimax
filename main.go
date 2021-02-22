@@ -6,17 +6,24 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/widget"
 )
 
-func setupBaseGameInterface(gameManager *GameManager) *fyne.Container{
+func setupBaseGameInterface(gameManager *GameManager) *fyne.Container {
 	gameBoard := gameManager.Board
-	content := container.New(layout.NewGridLayout(gameManager.getBoardSize()))
+	gameGrid := container.New(layout.NewGridLayout(gameManager.getBoardSize()))
 	for i := range gameBoard.Board {
 		for _, button := range gameBoard.Board[i]{
-			content.Add(button)
+			gameGrid.Add(button)
 		}
 	}
-	return content
+	resetButton := container.NewCenter(
+		widget.NewButtonWithIcon("", theme.MediaReplayIcon(), gameManager.ResetGame),
+	)
+	gameGrid.Add(layout.NewSpacer())
+	gameGrid.Add(resetButton)
+	gameGrid.Add(layout.NewSpacer())
+	return gameGrid
 }
 
 func main() {

@@ -37,10 +37,18 @@ func (gameManager *GameManager) handleAiMove() {
 	}
 }
 
+func (gameManager *GameManager) ResetGame() {
+	gameBoard := gameManager.Board
+	gameBoard.ResetBoard()
+	gameManager.setCurrentPlayer("X")
+}
+
 func (gameManager *GameManager) HandleCurrentTurn(row, col int) func() {
 	return func(){
+		fmt.Printf("-- Player clicked on [%d][%d]\n", row, col)
 		gameBoard := gameManager.Board
 		if gameManager.CurrentPlayer == "X" && gameBoard.GetText(row, col) == "" {
+			fmt.Printf("-- Player valid move on [%d][%d]\n", row, col)
 			gameBoard.SetText("X", row, col)
 			gameManager.setCurrentPlayer("O")
 			gameManager.handleAiMove()
