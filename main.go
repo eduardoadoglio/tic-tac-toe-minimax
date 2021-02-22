@@ -8,12 +8,11 @@ import (
 	"fyne.io/fyne/v2/theme"
 )
 
-var gameBoard *Board
-
-func setupBaseGameInterface() *fyne.Container{
-	content := container.New(layout.NewGridLayout(len(*gameBoard)))
-	for i := range *gameBoard {
-		for _, button := range (*gameBoard)[i]{
+func setupBaseGameInterface(gameManager *GameManager) *fyne.Container{
+	gameBoard := gameManager.Board
+	content := container.New(layout.NewGridLayout(gameManager.getBoardSize()))
+	for i := range gameBoard.Board {
+		for _, button := range gameBoard.Board[i]{
 			content.Add(button)
 		}
 	}
@@ -24,9 +23,9 @@ func main() {
 	myApp := app.New()
 	myWindow := myApp.NewWindow("Tic-tac-toe")
 	myApp.Settings().SetTheme(theme.LightTheme())
-	gameBoard = gameBoard.NewBoard(3)
+	gameManager := NewGameManager(3)
 	myWindow.Resize(fyne.NewSize(400, 400))
-	baseInterface := setupBaseGameInterface()
+	baseInterface := setupBaseGameInterface(gameManager)
 	myWindow.SetContent(baseInterface)
 	myWindow.ShowAndRun()
 }

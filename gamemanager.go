@@ -1,20 +1,31 @@
 package main
 
-import "fyne.io/fyne/v2/widget"
+import "fmt"
 
 type GameManager struct {
-	Board Board
-	ButtonBoard [][]*widget.Button
+	Board *GameBoard
 	CurrentPlayer string
 }
 
-func (gameManager *GameManager) NewGameManager() *GameManager{
-	// placeholder
+func (gameManager *GameManager) getBoardSize() int {
+	return gameManager.Board.Size
+}
+
+func NewGameManager(boardSize int) *GameManager{
+	fmt.Println("-- Creating new GameManager object")
+	gameManager := &GameManager{
+		CurrentPlayer: "X",
+	}
+	gameManager.Board = NewBoard(boardSize, gameManager.HandleCurrentTurn)
 	return gameManager
 }
 
-func HandleCurrentTurn(row, col int) func() {
+func (gameManager *GameManager) setCurrentPlayer(currentPlayer string) {
+	gameManager.CurrentPlayer = currentPlayer
+}
+
+func (gameManager *GameManager) HandleCurrentTurn(row, col int) func() {
 	return func(){
-		gameBoard.SetText("X", row, col)
+		gameManager.Board.SetText("X", row, col)
 	}
 }
