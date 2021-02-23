@@ -46,9 +46,8 @@ func (gameManager *GameManager) handleAiMove() {
 	}
 }
 
-func (gameManager *GameManager) checkWinner() bool {
+func (gameManager *GameManager) checkHorizontalWinner() bool {
 	gameBoard := gameManager.Board
-	// Checking horizontals
 	for i := range gameBoard.Board {
 		wonHorizontal := true
 		for _, button := range gameBoard.Board[i] {
@@ -56,30 +55,31 @@ func (gameManager *GameManager) checkWinner() bool {
 				wonHorizontal = false
 			}
 		}
-		if wonHorizontal == true {
-			gameManager.GameWinner = gameManager.CurrentPlayer
-			gameManager.GameState = "OVER"
-			return true
+		if wonHorizontal {
+			return wonHorizontal
 		}
 	}
+	return false
+}
 
-	// Checking verticals
+func (gameManager *GameManager) checkVerticalWinner() bool {
+	gameBoard := gameManager.Board
 	for i := range gameBoard.Board {
 		wonVertical := true
-
 		for j := range gameBoard.Board[i] {
 			if gameBoard.Board[j][i].Text != gameManager.CurrentPlayer {
 				wonVertical = false
 			}
 		}
-		if wonVertical == true {
-			gameManager.GameWinner = gameManager.CurrentPlayer
-			gameManager.GameState = "OVER"
-			return true
+		if wonVertical {
+			return wonVertical
 		}
 	}
+	return false
+}
 
-	// Checking diagonals
+func (gameManager *GameManager) checkDiagonalWinner() bool {
+	gameBoard := gameManager.Board
 	diagonals := [][]*widget.Button {
 		{gameBoard.Board[0][0], gameBoard.Board[1][1], gameBoard.Board[2][2]},
 		{gameBoard.Board[0][2], gameBoard.Board[1][1], gameBoard.Board[2][0]},
@@ -92,12 +92,23 @@ func (gameManager *GameManager) checkWinner() bool {
 				wonDiagonal = false
 			}
 		}
-		if wonDiagonal == true {
-			gameManager.GameWinner = gameManager.CurrentPlayer
-			gameManager.GameState = "OVER"
-			return true
+		if wonDiagonal {
+			return wonDiagonal
 		}
+	}
+	return false
+}
 
+
+func (gameManager *GameManager) checkWinner() bool {
+	horizontalWinner := gameManager.checkHorizontalWinner()
+	verticalWinner := gameManager.checkVerticalWinner()
+	diagonalWinner := gameManager.checkDiagonalWinner()
+
+	if horizontalWinner || verticalWinner || diagonalWinner {
+		gameManager.GameWinner = gameManager.CurrentPlayer
+		gameManager.GameState = "OVER"
+		return true
 	}
 
 	return false
@@ -119,6 +130,7 @@ func (gameManager *GameManager) HandleCurrentTurn(row, col int) func() {
 				gameBoard.SetText("X", row, col)
 				if gameManager.checkWinner() {
 					fmt.Printf("%s won.\n", gameManager.GameWinner)
+					return
 				}
 				gameManager.setCurrentPlayer("O")
 				gameManager.handleAiMove()
