@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"fyne.io/fyne/v2/widget"
+	"math"
 )
 
 type GameManager struct {
@@ -16,6 +17,7 @@ func NewGameManager(boardSize int) *GameManager{
 	fmt.Println("-- Creating new GameManager object")
 	gameManager := &GameManager{
 		CurrentPlayer: "X",
+		GameWinner: "",
 		GameState: "IN_PROGRESS",
 	}
 	gameManager.Board = NewBoard(boardSize, gameManager.HandleCurrentTurn)
@@ -30,61 +32,127 @@ func (gameManager *GameManager) setCurrentPlayer(currentPlayer string) {
 	gameManager.CurrentPlayer = currentPlayer
 }
 
-func minimax(gameBoard GameBoard, depth int, isMaximizing bool) int {
-	return 1
+func min(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
 }
 
-func (gameManager *GameManager) handleAiMove() {
-	gameBoard := gameManager.Board
+func max(x, y int) int {
+	if x > y {
+		return x
+	}
+	return y
+}
+
+func (gameManager *GameManager) minimax(gameBoard GameBoard, depth int, isMaximizing bool) int {
+	scores := map[string]int {
+		"X": -1,
+		"O": 1,
+		"TIE": 0,
+	}
+	if gameManager.isGameOver() {
+		return scores[gameManager.getWinner()]
+	}
+	bestScore := math.MaxInt64
+	if isMaximizing {
+		bestScore = math.MinInt64
+	}
 	for i := range gameBoard.Board {
-		for j, button := range gameBoard.Board[i] {
-			if button.Text == "" {
-				gameBoard.SetText("O", i, j)
-				// bestMove := minimax(*gameBoard, 0, false)
+		for j := range gameBoard.Board[i] {
+			if gameBoard.Board[i][j].Text == "" {
+				if isMaximizing {
+					gameBoard.Board[i][j].Text = "O"
+				}else {
+					gameBoard.Board[i][j].Text = "X"
+				}
+				score := gameManager.minimax(gameBoard, depth + 1, !isMaximizing)
+				gameBoard.Board[i][j].Text = ""
+				if isMaximizing {
+					bestScore = max(score, bestScore)
+				} else {
+					bestScore = min(score, bestScore)
+				}
 			}
 		}
 	}
+	return bestScore
+}
 
-	if gameManager.checkWinner() {
-		gameManager.handleWinner()
+func (gameManager *GameManager) handleAiMove() {
+	fmt.Println("-- Handling AI turn")
+	gameBoard := gameManager.Board
+	bestScore := math.MinInt64
+	bestMove := [2]int {}
+	for i := range gameBoard.Board {
+		for j, button := range gameBoard.Board[i] {
+			if button.Text == "" {
+				button.Text = "O"
+				score := gameManager.minimax(*gameBoard, 0, false)
+				button.Text = ""
+				if score > bestScore {
+					bestScore = score
+					bestMove[0] = i
+					bestMove[1] = j
+				}
+			}
+		}
+	}
+	fmt.Printf("-- Setting button [%d][%d]\n", bestMove[0], bestMove[1])
+	gameBoard.SetText("O", bestMove[0], bestMove[1])
+	if gameManager.isGameOver() {
+		gameManager.handleGameOver()
 		fmt.Printf("%s won.\n", gameManager.GameWinner)
 	}
 	gameManager.setCurrentPlayer("X")
 }
 
-func (gameManager *GameManager) checkHorizontalWinner() bool {
+func (gameManager *GameManager) checkHorizontalWinner() (bool, string) {
 	gameBoard := gameManager.Board
 	for i := range gameBoard.Board {
-		wonHorizontal := true
+		xWonHorizontal := true
+		oWonHorizontal := true
 		for _, button := range gameBoard.Board[i] {
-			if button.Text != gameManager.CurrentPlayer {
-				wonHorizontal = false
+			if button.Text != "X" {
+				xWonHorizontal = false
+			}
+			if button.Text != "O" {
+				oWonHorizontal = false
 			}
 		}
-		if wonHorizontal {
-			return wonHorizontal
+		if xWonHorizontal {
+			return true, "X"
+		} else if oWonHorizontal {
+			return true, "O"
 		}
 	}
-	return false
+	return false, ""
 }
 
-func (gameManager *GameManager) checkVerticalWinner() bool {
+func (gameManager *GameManager) checkVerticalWinner() (bool, string) {
 	gameBoard := gameManager.Board
 	for i := range gameBoard.Board {
-		wonVertical := true
+		xWonVertical := true
+		oWonVertical := true
 		for j := range gameBoard.Board[i] {
-			if gameBoard.Board[j][i].Text != gameManager.CurrentPlayer {
-				wonVertical = false
+			if gameBoard.Board[j][i].Text != "X" {
+				xWonVertical = false
+			}
+			if gameBoard.Board[j][i].Text != "O" {
+				oWonVertical = false
 			}
 		}
-		if wonVertical {
-			return wonVertical
+		if xWonVertical {
+			return true, "X"
+		}else if oWonVertical {
+			return true, "O"
 		}
 	}
-	return false
+	return false, ""
 }
 
-func (gameManager *GameManager) checkDiagonalWinner() bool {
+func (gameManager *GameManager) checkDiagonalWinner() (bool, string) {
 	gameBoard := gameManager.Board
 	diagonals := [][]*widget.Button {
 		{gameBoard.Board[0][0], gameBoard.Board[1][1], gameBoard.Board[2][2]},
@@ -92,30 +160,69 @@ func (gameManager *GameManager) checkDiagonalWinner() bool {
 	}
 
 	for i := range diagonals {
-		wonDiagonal := true
+		xWonDiagonal := true
+		oWonDiagonal := true
 		for _, button := range diagonals[i] {
-			if button.Text != gameManager.CurrentPlayer {
-				wonDiagonal = false
+			if button.Text != "X" {
+				xWonDiagonal = false
+			}
+			if button.Text != "O" {
+				oWonDiagonal = false
 			}
 		}
-		if wonDiagonal {
-			return wonDiagonal
+		if xWonDiagonal {
+			return true, "X"
+		} else if oWonDiagonal {
+			return true, "O"
 		}
 	}
-	return false
+	return false, ""
 }
 
-func (gameManager *GameManager) handleWinner() {
+func (gameManager *GameManager) checkForTies() (bool, string) {
+	gameBoard := gameManager.Board
+	for i := range gameBoard.Board {
+		for j := range gameBoard.Board[i] {
+			if gameBoard.Board[j][i].Text == "" {
+				return false, ""
+			}
+		}
+	}
+	gameManager.CurrentPlayer = "TIE"
+	return true, "TIE"
+}
+
+func (gameManager *GameManager) handleGameOver() {
 	gameManager.GameWinner = gameManager.CurrentPlayer
 	gameManager.GameState = "OVER"
 }
-func (gameManager *GameManager) checkWinner() bool {
-	horizontalWinner := gameManager.checkHorizontalWinner()
-	verticalWinner := gameManager.checkVerticalWinner()
-	diagonalWinner := gameManager.checkDiagonalWinner()
 
-	return horizontalWinner || verticalWinner || diagonalWinner
+func (gameManager *GameManager) isGameOver() bool {
+	horizontalWinner, _ := gameManager.checkHorizontalWinner()
+	verticalWinner, _ := gameManager.checkVerticalWinner()
+	diagonalWinner, _ := gameManager.checkDiagonalWinner()
+	isTied, _ := gameManager.checkForTies()
+	return horizontalWinner || verticalWinner || diagonalWinner || isTied
+}
 
+func (gameManager *GameManager) getWinner() string {
+	horizontalWinner, winner := gameManager.checkHorizontalWinner()
+	if horizontalWinner {
+		return winner
+	}
+	verticalWinner, winner := gameManager.checkVerticalWinner()
+	if verticalWinner {
+		return winner
+	}
+	diagonalWinner, winner := gameManager.checkDiagonalWinner()
+	if diagonalWinner {
+		return winner
+	}
+	isTied, winner := gameManager.checkForTies()
+	if isTied {
+		return winner
+	}
+	return ""
 }
 
 func (gameManager *GameManager) ResetGame() {
@@ -132,9 +239,9 @@ func (gameManager *GameManager) HandleCurrentTurn(row, col int) func() {
 			gameBoard := gameManager.Board
 			if gameManager.CurrentPlayer == "X" && gameBoard.GetText(row, col) == "" {
 				gameBoard.SetText("X", row, col)
-				if gameManager.checkWinner() {
-					gameManager.handleWinner()
-					fmt.Printf("%s won.\n", gameManager.GameWinner)
+				if gameManager.isGameOver() {
+					gameManager.handleGameOver()
+					fmt.Printf("%s won.\n", gameManager.getWinner())
 					return
 				}
 				gameManager.setCurrentPlayer("O")
