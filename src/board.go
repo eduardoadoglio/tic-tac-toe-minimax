@@ -62,3 +62,12 @@ func (gameBoard *GameBoard) ResetBoard() {
 		}
 	}
 }
+
+func (gameBoard *GameBoard) printGameBoard() {
+	for i := range gameBoard.Board {
+		for _, button := range gameBoard.Board[i] {
+			fmt.Printf("\"%s\" ", button.Text)
+		}
+		fmt.Println()
+	}
+}
