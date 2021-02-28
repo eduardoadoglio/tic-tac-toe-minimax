@@ -188,7 +188,6 @@ func (gameManager *GameManager) checkForTies() (bool, string) {
 			}
 		}
 	}
-	gameManager.CurrentPlayer = "TIE"
 	return true, "TIE"
 }
 
