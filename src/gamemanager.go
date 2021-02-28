@@ -8,19 +8,24 @@ import (
 
 type GameManager struct {
 	Board *GameBoard
+	Players *Players
 	CurrentPlayer string
 	GameState string
 	GameWinner string
 }
 
-func NewGameManager(boardSize int) *GameManager{
+func NewGameManager(boardSize int, players *Players) *GameManager{
 	fmt.Println("-- Creating new GameManager object")
 	gameManager := &GameManager{
 		CurrentPlayer: "X",
+		Players: players,
 		GameWinner: "",
 		GameState: "IN_PROGRESS",
 	}
-	gameManager.Board = NewBoard(boardSize, gameManager.HandleCurrentTurn)
+	gameManager.Board = NewBoard(boardSize, gameManager.handleHumanTurn)
+	if gameManager.CurrentPlayer == gameManager.Players.AI {
+		gameManager.handleAiTurn()
+	}
 	return gameManager
 }
 
@@ -63,9 +68,9 @@ func (gameManager *GameManager) minimax(gameBoard GameBoard, depth int, isMaximi
 		for j := range gameBoard.Board[i] {
 			if gameBoard.Board[i][j].Text == "" {
 				if isMaximizing {
-					gameBoard.Board[i][j].Text = "O"
+					gameBoard.Board[i][j].Text = gameManager.Players.AI
 				}else {
-					gameBoard.Board[i][j].Text = "X"
+					gameBoard.Board[i][j].Text = gameManager.Players.Human
 				}
 				score := gameManager.minimax(gameBoard, depth + 1, !isMaximizing)
 				gameBoard.Board[i][j].Text = ""
@@ -80,7 +85,7 @@ func (gameManager *GameManager) minimax(gameBoard GameBoard, depth int, isMaximi
 	return bestScore
 }
 
-func (gameManager *GameManager) handleAiMove() {
+func (gameManager *GameManager) handleAiTurn() {
 	fmt.Println("-- Handling AI turn")
 	gameBoard := gameManager.Board
 	bestScore := math.MinInt64
@@ -88,7 +93,7 @@ func (gameManager *GameManager) handleAiMove() {
 	for i := range gameBoard.Board {
 		for j, button := range gameBoard.Board[i] {
 			if button.Text == "" {
-				button.Text = "O"
+				button.Text = gameManager.Players.AI
 				score := gameManager.minimax(*gameBoard, 0, false)
 				button.Text = ""
 				if score > bestScore {
@@ -100,12 +105,12 @@ func (gameManager *GameManager) handleAiMove() {
 		}
 	}
 	fmt.Printf("-- Setting button [%d][%d]\n", bestMove[0], bestMove[1])
-	gameBoard.SetText("O", bestMove[0], bestMove[1])
+	gameBoard.SetText(gameManager.Players.AI, bestMove[0], bestMove[1])
 	if gameManager.isGameOver() {
 		gameManager.handleGameOver()
 		fmt.Printf("%s won.\n", gameManager.GameWinner)
 	}
-	gameManager.setCurrentPlayer("X")
+	gameManager.setCurrentPlayer(gameManager.Players.Human)
 }
 
 func (gameManager *GameManager) checkHorizontalWinner() (bool, string) {
@@ -230,21 +235,24 @@ func (gameManager *GameManager) ResetGame() {
 	gameManager.setCurrentPlayer("X")
 	gameManager.GameWinner = ""
 	gameManager.GameState = "IN_PROGRESS"
+	if gameManager.CurrentPlayer == gameManager.Players.AI {
+		gameManager.handleAiTurn()
+	}
 }
 
-func (gameManager *GameManager) HandleCurrentTurn(row, col int) func() {
+func (gameManager *GameManager) handleHumanTurn(row, col int) func() {
 	return func(){
 		if gameManager.GameState == "IN_PROGRESS" {
 			gameBoard := gameManager.Board
-			if gameManager.CurrentPlayer == "X" && gameBoard.GetText(row, col) == "" {
-				gameBoard.SetText("X", row, col)
+			if gameManager.CurrentPlayer == gameManager.Players.Human && gameBoard.GetText(row, col) == "" {
+				gameBoard.SetText(gameManager.Players.Human, row, col)
 				if gameManager.isGameOver() {
 					gameManager.handleGameOver()
 					fmt.Printf("%s won.\n", gameManager.getWinner())
 					return
 				}
-				gameManager.setCurrentPlayer("O")
-				gameManager.handleAiMove()
+				gameManager.setCurrentPlayer(gameManager.Players.AI)
+				gameManager.handleAiTurn()
 			}
 		}
 	}
