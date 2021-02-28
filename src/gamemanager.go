@@ -68,9 +68,9 @@ func (gameManager *GameManager) minimax(gameBoard GameBoard, depth int, isMaximi
 		for j := range gameBoard.Board[i] {
 			if gameBoard.Board[i][j].Text == "" {
 				if isMaximizing {
-					gameBoard.Board[i][j].Text = "O"
+					gameBoard.Board[i][j].Text = gameManager.Players.AI
 				}else {
-					gameBoard.Board[i][j].Text = "X"
+					gameBoard.Board[i][j].Text = gameManager.Players.Human
 				}
 				score := gameManager.minimax(gameBoard, depth + 1, !isMaximizing)
 				gameBoard.Board[i][j].Text = ""
@@ -93,7 +93,7 @@ func (gameManager *GameManager) handleAiTurn() {
 	for i := range gameBoard.Board {
 		for j, button := range gameBoard.Board[i] {
 			if button.Text == "" {
-				button.Text = "O"
+				button.Text = gameManager.Players.AI
 				score := gameManager.minimax(*gameBoard, 0, false)
 				button.Text = ""
 				if score > bestScore {
@@ -105,12 +105,12 @@ func (gameManager *GameManager) handleAiTurn() {
 		}
 	}
 	fmt.Printf("-- Setting button [%d][%d]\n", bestMove[0], bestMove[1])
-	gameBoard.SetText("O", bestMove[0], bestMove[1])
+	gameBoard.SetText(gameManager.Players.AI, bestMove[0], bestMove[1])
 	if gameManager.isGameOver() {
 		gameManager.handleGameOver()
 		fmt.Printf("%s won.\n", gameManager.GameWinner)
 	}
-	gameManager.setCurrentPlayer("X")
+	gameManager.setCurrentPlayer(gameManager.Players.Human)
 }
 
 func (gameManager *GameManager) checkHorizontalWinner() (bool, string) {
