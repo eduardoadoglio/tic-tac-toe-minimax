@@ -53,8 +53,8 @@ func max(x, y int) int {
 
 func (gameManager *GameManager) minimax(gameBoard GameBoard, depth int, isMaximizing bool) int {
 	scores := map[string]int {
-		"X": -1 - (1/1+depth),
-		"O": 1 - (1/1+depth),
+		gameManager.Players.Human: -1 - (1/1+depth),
+		gameManager.Players.AI: 1 - (1/1+depth),
 		"TIE": 0,
 	}
 	if gameManager.isGameOver() {
