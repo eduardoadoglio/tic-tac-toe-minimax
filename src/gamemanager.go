@@ -22,7 +22,7 @@ func NewGameManager(boardSize int, players *Players) *GameManager{
 		GameWinner: "",
 		GameState: "IN_PROGRESS",
 	}
-	gameManager.Board = NewBoard(boardSize, gameManager.HandleCurrentTurn)
+	gameManager.Board = NewBoard(boardSize, gameManager.handleHumanTurn)
 	if gameManager.CurrentPlayer == gameManager.Players.AI {
 		gameManager.handleAiTurn()
 	}
@@ -240,12 +240,12 @@ func (gameManager *GameManager) ResetGame() {
 	}
 }
 
-func (gameManager *GameManager) HandleCurrentTurn(row, col int) func() {
+func (gameManager *GameManager) handleHumanTurn(row, col int) func() {
 	return func(){
 		if gameManager.GameState == "IN_PROGRESS" {
 			gameBoard := gameManager.Board
-			if gameManager.CurrentPlayer == "X" && gameBoard.GetText(row, col) == "" {
-				gameBoard.SetText("X", row, col)
+			if gameManager.CurrentPlayer == gameManager.Players.Human && gameBoard.GetText(row, col) == "" {
+				gameBoard.SetText(gameManager.Players.Human, row, col)
 				if gameManager.isGameOver() {
 					gameManager.handleGameOver()
 					fmt.Printf("%s won.\n", gameManager.getWinner())
