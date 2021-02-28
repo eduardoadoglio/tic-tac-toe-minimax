@@ -8,19 +8,24 @@ import (
 
 type GameManager struct {
 	Board *GameBoard
+	Players *Players
 	CurrentPlayer string
 	GameState string
 	GameWinner string
 }
 
-func NewGameManager(boardSize int) *GameManager{
+func NewGameManager(boardSize int, players *Players) *GameManager{
 	fmt.Println("-- Creating new GameManager object")
 	gameManager := &GameManager{
 		CurrentPlayer: "X",
+		Players: players,
 		GameWinner: "",
 		GameState: "IN_PROGRESS",
 	}
 	gameManager.Board = NewBoard(boardSize, gameManager.HandleCurrentTurn)
+	if gameManager.CurrentPlayer == gameManager.Players.AI {
+		gameManager.handleAiTurn()
+	}
 	return gameManager
 }
 
@@ -80,7 +85,7 @@ func (gameManager *GameManager) minimax(gameBoard GameBoard, depth int, isMaximi
 	return bestScore
 }
 
-func (gameManager *GameManager) handleAiMove() {
+func (gameManager *GameManager) handleAiTurn() {
 	fmt.Println("-- Handling AI turn")
 	gameBoard := gameManager.Board
 	bestScore := math.MinInt64
@@ -230,6 +235,9 @@ func (gameManager *GameManager) ResetGame() {
 	gameManager.setCurrentPlayer("X")
 	gameManager.GameWinner = ""
 	gameManager.GameState = "IN_PROGRESS"
+	if gameManager.CurrentPlayer == gameManager.Players.AI {
+		gameManager.handleAiTurn()
+	}
 }
 
 func (gameManager *GameManager) HandleCurrentTurn(row, col int) func() {
@@ -243,8 +251,8 @@ func (gameManager *GameManager) HandleCurrentTurn(row, col int) func() {
 					fmt.Printf("%s won.\n", gameManager.getWinner())
 					return
 				}
-				gameManager.setCurrentPlayer("O")
-				gameManager.handleAiMove()
+				gameManager.setCurrentPlayer(gameManager.Players.AI)
+				gameManager.handleAiTurn()
 			}
 		}
 	}
