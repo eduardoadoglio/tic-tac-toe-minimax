@@ -22,8 +22,8 @@ func NewPlayersWithHuman(human string) *Players {
 		}
 	} else if human == "O"{
 		players = &Players{
-			AI: "O",
-			Human: "X",
+			AI: "X",
+			Human: "O",
 		}
 	}
 	return players
