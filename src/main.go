@@ -35,14 +35,26 @@ func setupBaseGameInterface(gameManager *GameManager) *fyne.Container {
 	return gameGrid
 }
 
+func setupMenuInterface() *fyne.Container {
+	menu := container.New(layout.NewGridLayoutWithRows(3))
+	title := container.NewCenter(widget.NewLabel("Selecione o jogador"))
+	xButton := widget.NewButton("X", nil)
+	oButton := widget.NewButton("O", nil)
+	menu.Add(title)
+	menu.Add(xButton)
+	menu.Add(oButton)
+	return menu
+}
+
 func main() {
 	myApp := app.New()
 	myWindow := myApp.NewWindow("Tic-tac-toe")
 	myApp.Settings().SetTheme(theme.LightTheme())
-	players := NewPlayers("X", "O")
-	gameManager := NewGameManager(3, players)
+	// players := NewPlayers("X", "O")
+	// gameManager := NewGameManager(3, players)
 	myWindow.Resize(fyne.NewSize(400, 400))
-	baseInterface := setupBaseGameInterface(gameManager)
+	// baseInterface := setupBaseGameInterface(gameManager)
+	baseInterface := setupMenuInterface()
 	myWindow.SetContent(baseInterface)
 	myWindow.ShowAndRun()
 }
