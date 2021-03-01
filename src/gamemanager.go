@@ -14,14 +14,14 @@ type GameManager struct {
 	GameWinner string
 }
 
-func NewGameManager(boardSize int, players *Players) *GameManager{
+func NewGameManager(boardSize int, humanPlayer string) *GameManager{
 	fmt.Println("-- Creating new GameManager object")
 	gameManager := &GameManager{
 		CurrentPlayer: "X",
-		Players: players,
 		GameWinner: "",
 		GameState: "IN_PROGRESS",
 	}
+	gameManager.setHumanPlayer(humanPlayer)
 	gameManager.Board = NewBoard(boardSize, gameManager.handleHumanTurn)
 	if gameManager.CurrentPlayer == gameManager.Players.AI {
 		gameManager.handleAiTurn()
@@ -35,6 +35,11 @@ func (gameManager *GameManager) getBoardSize() int {
 
 func (gameManager *GameManager) setCurrentPlayer(currentPlayer string) {
 	gameManager.CurrentPlayer = currentPlayer
+}
+
+func (gameManager *GameManager) setHumanPlayer(humanPlayer string) {
+	players := NewPlayersWithHuman(humanPlayer)
+	gameManager.Players = players
 }
 
 func min(x, y int) int {
