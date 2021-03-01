@@ -33,13 +33,16 @@ func (gui *GUI) showContentAndRun() {
 	gui.window.ShowAndRun()
 }
 
-func appendActionButtons(gameGrid *fyne.Container, gameManager *GameManager) {
+func (gui *GUI) appendActionButtons(gameGrid *fyne.Container) {
 	resetButton := container.NewCenter(
-		widget.NewButtonWithIcon("", theme.MediaReplayIcon(), gameManager.ResetGame),
+		widget.NewButtonWithIcon("", theme.MediaReplayIcon(), gui.gameManager.ResetGame),
+	)
+	returnButton := container.NewCenter(
+		widget.NewButtonWithIcon("", theme.ContentUndoIcon(), gui.returnToMenu),
 	)
 	gameGrid.Add(layout.NewSpacer())
 	gameGrid.Add(resetButton)
-	gameGrid.Add(layout.NewSpacer())
+	gameGrid.Add(returnButton)
 }
 
 func createGameGrid(gameManager *GameManager) *fyne.Container {
@@ -55,7 +58,7 @@ func createGameGrid(gameManager *GameManager) *fyne.Container {
 
 func (gui *GUI) setupBaseGameInterface() *fyne.Container {
 	gameGrid := createGameGrid(gui.gameManager)
-	appendActionButtons(gameGrid, gui.gameManager)
+	gui.appendActionButtons(gameGrid)
 	return gameGrid
 }
 
@@ -76,4 +79,9 @@ func (gui *GUI) initGameInterface(humanPlayer string) func() {
 		gameInterface := gui.setupBaseGameInterface()
 		gui.setWindowContent(gameInterface)
 	}
+}
+
+func (gui *GUI) returnToMenu() {
+	baseInterface := gui.setupMenuInterface()
+	gui.setWindowContent(baseInterface)
 }
