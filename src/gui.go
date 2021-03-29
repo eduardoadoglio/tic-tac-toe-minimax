@@ -34,13 +34,16 @@ func (gui *GUI) showContentAndRun() {
 }
 
 func (gui *GUI) appendActionButtons(gameGrid *fyne.Container) {
+	quitButton := container.NewCenter(
+		widget.NewButtonWithIcon("", theme.CancelIcon(), gui.quitGame),
+	)
 	resetButton := container.NewCenter(
 		widget.NewButtonWithIcon("", theme.MediaReplayIcon(), gui.gameManager.ResetGame),
 	)
 	returnButton := container.NewCenter(
 		widget.NewButtonWithIcon("", theme.ContentUndoIcon(), gui.returnToMenu),
 	)
-	gameGrid.Add(layout.NewSpacer())
+	gameGrid.Add(quitButton)
 	gameGrid.Add(resetButton)
 	gameGrid.Add(returnButton)
 }
@@ -89,6 +92,10 @@ func (gui *GUI) initGameInterface(humanPlayer string) func() {
 		gameInterface := gui.setupBaseGameInterface()
 		gui.setWindowContent(gameInterface)
 	}
+}
+
+func (gui *GUI) quitGame() {
+	gui.window.Close()
 }
 
 func (gui *GUI) returnToMenu() {
