@@ -158,31 +158,27 @@ func (gameManager *GameManager) checkVerticalWinner() bool {
 	return false
 }
 
-func (gameManager *GameManager) checkDiagonalWinner() (bool, string) {
+func (gameManager *GameManager) checkDiagonalWinner() bool {
 	gameBoard := gameManager.Board
+	currentPlayer := gameManager.CurrentPlayer
 	diagonals := [][]*widget.Button {
 		{gameBoard.Board[0][0], gameBoard.Board[1][1], gameBoard.Board[2][2]},
 		{gameBoard.Board[0][2], gameBoard.Board[1][1], gameBoard.Board[2][0]},
 	}
 
 	for i := range diagonals {
-		xWonDiagonal := true
-		oWonDiagonal := true
+		currentPlayerWonDiagonal := true
 		for _, button := range diagonals[i] {
-			if button.Text != "X" {
-				xWonDiagonal = false
-			}
-			if button.Text != "O" {
-				oWonDiagonal = false
+			if button.Text != currentPlayer {
+				currentPlayerWonDiagonal = false
 			}
 		}
-		if xWonDiagonal {
-			return true, "X"
-		} else if oWonDiagonal {
-			return true, "O"
+		if currentPlayerWonDiagonal {
+			gameManager.setGameWinner(currentPlayer)
+			return true
 		}
 	}
-	return false, ""
+	return false
 }
 
 func (gameManager *GameManager) checkForTies() (bool, string) {
@@ -210,7 +206,7 @@ func (gameManager *GameManager) handleGameOver() {
 func (gameManager *GameManager) isGameOver() bool {
 	horizontalWinner := gameManager.checkHorizontalWinner()
 	verticalWinner := gameManager.checkVerticalWinner()
-	diagonalWinner, _ := gameManager.checkDiagonalWinner()
+	diagonalWinner := gameManager.checkDiagonalWinner()
 	isTied, _ := gameManager.checkForTies()
 	return horizontalWinner || verticalWinner || diagonalWinner || isTied
 }
@@ -218,12 +214,9 @@ func (gameManager *GameManager) isGameOver() bool {
 func (gameManager *GameManager) getWinner() string {
 	horizontalWinner := gameManager.checkHorizontalWinner()
 	verticalWinner := gameManager.checkVerticalWinner()
-	if horizontalWinner || verticalWinner {
+	diagonalWinner := gameManager.checkDiagonalWinner()
+	if horizontalWinner || verticalWinner || diagonalWinner {
 		return gameManager.GameWinner
-	}
-	diagonalWinner, winner := gameManager.checkDiagonalWinner()
-	if diagonalWinner {
-		return winner
 	}
 	isTied, winner := gameManager.checkForTies()
 	if isTied {
