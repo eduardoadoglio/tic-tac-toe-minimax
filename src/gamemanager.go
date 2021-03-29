@@ -12,6 +12,7 @@ type GameManager struct {
 	CurrentPlayer string
 	GameState string
 	GameWinner string
+	WinIndicator *widget.Label
 }
 
 func NewGameManager(boardSize int, humanPlayer string) *GameManager{
@@ -122,6 +123,7 @@ func (gameManager *GameManager) setGameWinner(gameWinner string) {
 	gameManager.GameWinner = gameWinner
 }
 
+
 func (gameManager *GameManager) checkHorizontalWinner() bool {
 	gameBoard := gameManager.Board
 	currentPlayer := gameManager.CurrentPlayer
@@ -130,6 +132,7 @@ func (gameManager *GameManager) checkHorizontalWinner() bool {
 		for _, button := range gameBoard.Board[i] {
 			if button.Text != currentPlayer {
 				currentPlayerWonHorizontal = false
+				continue
 			}
 		}
 		if currentPlayerWonHorizontal {
@@ -148,6 +151,7 @@ func (gameManager *GameManager) checkVerticalWinner() bool {
 		for j := range gameBoard.Board[i] {
 			if gameBoard.Board[j][i].Text != currentPlayer {
 				currentPlayerWonVertical = false
+				continue
 			}
 		}
 		if currentPlayerWonVertical {
@@ -171,6 +175,7 @@ func (gameManager *GameManager) checkDiagonalWinner() bool {
 		for _, button := range diagonals[i] {
 			if button.Text != currentPlayer {
 				currentPlayerWonDiagonal = false
+				continue
 			}
 		}
 		if currentPlayerWonDiagonal {
@@ -194,14 +199,16 @@ func (gameManager *GameManager) checkForTies() bool {
 	return true
 }
 
-func (gameManager *GameManager) paintWinner() {
-	return
+func (gameManager *GameManager) setWinIndicatorText() {
+	winText := gameManager.GameWinner + " won!"
+	gameManager.WinIndicator.SetText(winText)
+
 }
 
 func (gameManager *GameManager) handleGameOver() {
 	gameManager.GameWinner = gameManager.CurrentPlayer
 	gameManager.GameState = "OVER"
-	gameManager.paintWinner()
+	gameManager.setWinIndicatorText()
 }
 
 func (gameManager *GameManager) isGameOver() bool {
@@ -229,6 +236,7 @@ func (gameManager *GameManager) ResetGame() {
 	gameManager.setCurrentPlayer("X")
 	gameManager.GameWinner = ""
 	gameManager.GameState = "IN_PROGRESS"
+	gameManager.WinIndicator.SetText("")
 	if gameManager.CurrentPlayer == gameManager.Players.AI {
 		gameManager.handleAiTurn()
 	}
