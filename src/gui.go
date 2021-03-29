@@ -48,6 +48,12 @@ func (gui *GUI) appendActionButtons(gameGrid *fyne.Container) {
 func createGameGrid(gameManager *GameManager) *fyne.Container {
 	gameBoard := gameManager.Board
 	gameGrid := container.New(layout.NewGridLayout(gameManager.getBoardSize()))
+	gameGrid.Add(layout.NewSpacer())
+	winIndicator := widget.NewLabel("")
+	gameManager.WinIndicator = winIndicator
+	gameGrid.Add(container.NewCenter(winIndicator))
+	gameGrid.Add(layout.NewSpacer())
+
 	for i := range gameBoard.Board {
 		for _, button := range gameBoard.Board[i]{
 			gameGrid.Add(button)

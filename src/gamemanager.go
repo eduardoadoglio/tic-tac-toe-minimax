@@ -12,6 +12,7 @@ type GameManager struct {
 	CurrentPlayer string
 	GameState string
 	GameWinner string
+	WinIndicator *widget.Label
 }
 
 func NewGameManager(boardSize int, humanPlayer string) *GameManager{
@@ -118,118 +119,122 @@ func (gameManager *GameManager) handleAiTurn() {
 	gameManager.setCurrentPlayer(gameManager.Players.Human)
 }
 
-func (gameManager *GameManager) checkHorizontalWinner() (bool, string) {
+func (gameManager *GameManager) setGameWinner(gameWinner string) {
+	gameManager.GameWinner = gameWinner
+}
+
+
+func (gameManager *GameManager) checkHorizontalWinner() bool {
 	gameBoard := gameManager.Board
+	currentPlayer := gameManager.CurrentPlayer
 	for i := range gameBoard.Board {
-		xWonHorizontal := true
-		oWonHorizontal := true
+		currentPlayerWonHorizontal := true
 		for _, button := range gameBoard.Board[i] {
-			if button.Text != "X" {
-				xWonHorizontal = false
-			}
-			if button.Text != "O" {
-				oWonHorizontal = false
+			if button.Text != currentPlayer {
+				currentPlayerWonHorizontal = false
+				continue
 			}
 		}
-		if xWonHorizontal {
-			return true, "X"
-		} else if oWonHorizontal {
-			return true, "O"
+		if currentPlayerWonHorizontal {
+			gameManager.setGameWinner(currentPlayer)
+			return true
 		}
 	}
-	return false, ""
+	return false
 }
 
-func (gameManager *GameManager) checkVerticalWinner() (bool, string) {
+func (gameManager *GameManager) checkVerticalWinner() bool {
 	gameBoard := gameManager.Board
+	currentPlayer := gameManager.CurrentPlayer
 	for i := range gameBoard.Board {
-		xWonVertical := true
-		oWonVertical := true
+		currentPlayerWonVertical := true
 		for j := range gameBoard.Board[i] {
-			if gameBoard.Board[j][i].Text != "X" {
-				xWonVertical = false
-			}
-			if gameBoard.Board[j][i].Text != "O" {
-				oWonVertical = false
+			if gameBoard.Board[j][i].Text != currentPlayer {
+				currentPlayerWonVertical = false
+				continue
 			}
 		}
-		if xWonVertical {
-			return true, "X"
-		}else if oWonVertical {
-			return true, "O"
+		if currentPlayerWonVertical {
+			gameManager.setGameWinner(currentPlayer)
+			return true
 		}
 	}
-	return false, ""
+	return false
 }
 
-func (gameManager *GameManager) checkDiagonalWinner() (bool, string) {
+func (gameManager *GameManager) checkDiagonalWinner() bool {
 	gameBoard := gameManager.Board
+	currentPlayer := gameManager.CurrentPlayer
 	diagonals := [][]*widget.Button {
 		{gameBoard.Board[0][0], gameBoard.Board[1][1], gameBoard.Board[2][2]},
 		{gameBoard.Board[0][2], gameBoard.Board[1][1], gameBoard.Board[2][0]},
 	}
 
 	for i := range diagonals {
-		xWonDiagonal := true
-		oWonDiagonal := true
+		currentPlayerWonDiagonal := true
 		for _, button := range diagonals[i] {
-			if button.Text != "X" {
-				xWonDiagonal = false
-			}
-			if button.Text != "O" {
-				oWonDiagonal = false
+			if button.Text != currentPlayer {
+				currentPlayerWonDiagonal = false
+				continue
 			}
 		}
-		if xWonDiagonal {
-			return true, "X"
-		} else if oWonDiagonal {
-			return true, "O"
+		if currentPlayerWonDiagonal {
+			gameManager.setGameWinner(currentPlayer)
+			return true
 		}
 	}
-	return false, ""
+	return false
 }
 
-func (gameManager *GameManager) checkForTies() (bool, string) {
+func (gameManager *GameManager) checkForTies() bool {
 	gameBoard := gameManager.Board
 	for i := range gameBoard.Board {
 		for j := range gameBoard.Board[i] {
 			if gameBoard.Board[j][i].Text == "" {
-				return false, ""
+				return false
 			}
 		}
 	}
-	return true, "TIE"
+	gameManager.setGameWinner("TIE")
+	return true
+}
+
+func (gameManager *GameManager) getWinnerNameBySymbol(winnerSymbol string) string {
+	if gameManager.Players.Human == winnerSymbol {
+		return "Human"
+	}else {
+		return "AI"
+	}
+}
+
+func (gameManager *GameManager) setWinIndicatorText() {
+	winnerName := gameManager.getWinnerNameBySymbol(gameManager.GameWinner)
+	winText := winnerName + " won!"
+	gameManager.WinIndicator.SetText(winText)
+
 }
 
 func (gameManager *GameManager) handleGameOver() {
 	gameManager.GameWinner = gameManager.CurrentPlayer
 	gameManager.GameState = "OVER"
+	gameManager.setWinIndicatorText()
 }
 
 func (gameManager *GameManager) isGameOver() bool {
-	horizontalWinner, _ := gameManager.checkHorizontalWinner()
-	verticalWinner, _ := gameManager.checkVerticalWinner()
-	diagonalWinner, _ := gameManager.checkDiagonalWinner()
-	isTied, _ := gameManager.checkForTies()
+	horizontalWinner := gameManager.checkHorizontalWinner()
+	verticalWinner := gameManager.checkVerticalWinner()
+	diagonalWinner := gameManager.checkDiagonalWinner()
+	isTied := gameManager.checkForTies()
 	return horizontalWinner || verticalWinner || diagonalWinner || isTied
 }
 
 func (gameManager *GameManager) getWinner() string {
-	horizontalWinner, winner := gameManager.checkHorizontalWinner()
-	if horizontalWinner {
-		return winner
-	}
-	verticalWinner, winner := gameManager.checkVerticalWinner()
-	if verticalWinner {
-		return winner
-	}
-	diagonalWinner, winner := gameManager.checkDiagonalWinner()
-	if diagonalWinner {
-		return winner
-	}
-	isTied, winner := gameManager.checkForTies()
-	if isTied {
-		return winner
+	horizontalWinner := gameManager.checkHorizontalWinner()
+	verticalWinner := gameManager.checkVerticalWinner()
+	diagonalWinner := gameManager.checkDiagonalWinner()
+	isTied := gameManager.checkForTies()
+	if horizontalWinner || verticalWinner || diagonalWinner || isTied {
+		return gameManager.GameWinner
 	}
 	return ""
 }
@@ -240,6 +245,7 @@ func (gameManager *GameManager) ResetGame() {
 	gameManager.setCurrentPlayer("X")
 	gameManager.GameWinner = ""
 	gameManager.GameState = "IN_PROGRESS"
+	gameManager.WinIndicator.SetText("")
 	if gameManager.CurrentPlayer == gameManager.Players.AI {
 		gameManager.handleAiTurn()
 	}
