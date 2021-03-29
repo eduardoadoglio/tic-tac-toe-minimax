@@ -118,26 +118,26 @@ func (gameManager *GameManager) handleAiTurn() {
 	gameManager.setCurrentPlayer(gameManager.Players.Human)
 }
 
-func (gameManager *GameManager) checkHorizontalWinner() (bool, string) {
+func (gameManager *GameManager) setGameWinner(gameWinner string) {
+	gameManager.GameWinner = gameWinner
+}
+
+func (gameManager *GameManager) checkHorizontalWinner() bool {
 	gameBoard := gameManager.Board
+	currentPlayer := gameManager.CurrentPlayer
 	for i := range gameBoard.Board {
-		xWonHorizontal := true
-		oWonHorizontal := true
+		currentPlayerWonHorizontal := true
 		for _, button := range gameBoard.Board[i] {
-			if button.Text != "X" {
-				xWonHorizontal = false
-			}
-			if button.Text != "O" {
-				oWonHorizontal = false
+			if button.Text != currentPlayer {
+				currentPlayerWonHorizontal = false
 			}
 		}
-		if xWonHorizontal {
-			return true, "X"
-		} else if oWonHorizontal {
-			return true, "O"
+		if currentPlayerWonHorizontal {
+			gameManager.setGameWinner(currentPlayer)
+			return true
 		}
 	}
-	return false, ""
+	return false
 }
 
 func (gameManager *GameManager) checkVerticalWinner() (bool, string) {
@@ -201,13 +201,18 @@ func (gameManager *GameManager) checkForTies() (bool, string) {
 	return true, "TIE"
 }
 
+func (gameManager *GameManager) paintWinner() {
+	return
+}
+
 func (gameManager *GameManager) handleGameOver() {
 	gameManager.GameWinner = gameManager.CurrentPlayer
 	gameManager.GameState = "OVER"
+	gameManager.paintWinner()
 }
 
 func (gameManager *GameManager) isGameOver() bool {
-	horizontalWinner, _ := gameManager.checkHorizontalWinner()
+	horizontalWinner := gameManager.checkHorizontalWinner()
 	verticalWinner, _ := gameManager.checkVerticalWinner()
 	diagonalWinner, _ := gameManager.checkDiagonalWinner()
 	isTied, _ := gameManager.checkForTies()
@@ -215,9 +220,9 @@ func (gameManager *GameManager) isGameOver() bool {
 }
 
 func (gameManager *GameManager) getWinner() string {
-	horizontalWinner, winner := gameManager.checkHorizontalWinner()
+	horizontalWinner := gameManager.checkHorizontalWinner()
 	if horizontalWinner {
-		return winner
+		return gameManager.GameWinner
 	}
 	verticalWinner, winner := gameManager.checkVerticalWinner()
 	if verticalWinner {
