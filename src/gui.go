@@ -45,15 +45,19 @@ func (gui *GUI) appendActionButtons(gameGrid *fyne.Container) {
 	gameGrid.Add(returnButton)
 }
 
-func createGameGrid(gameManager *GameManager) *fyne.Container {
-	gameBoard := gameManager.Board
-	gameGrid := container.New(layout.NewGridLayout(gameManager.getBoardSize()))
+func (gui *GUI) prependWinIndicator(gameGrid *fyne.Container) {
 	gameGrid.Add(layout.NewSpacer())
 	winIndicator := widget.NewLabel("")
-	gameManager.WinIndicator = winIndicator
+	gui.gameManager.WinIndicator = winIndicator
 	gameGrid.Add(container.NewCenter(winIndicator))
 	gameGrid.Add(layout.NewSpacer())
+}
 
+func (gui *GUI) createGameGrid() *fyne.Container {
+	gameManager := gui.gameManager
+	gameBoard := gameManager.Board
+	gameGrid := container.New(layout.NewGridLayout(gameManager.getBoardSize()))
+	gui.prependWinIndicator(gameGrid)
 	for i := range gameBoard.Board {
 		for _, button := range gameBoard.Board[i]{
 			gameGrid.Add(button)
@@ -63,7 +67,7 @@ func createGameGrid(gameManager *GameManager) *fyne.Container {
 }
 
 func (gui *GUI) setupBaseGameInterface() *fyne.Container {
-	gameGrid := createGameGrid(gui.gameManager)
+	gameGrid := gui.createGameGrid()
 	gui.appendActionButtons(gameGrid)
 	return gameGrid
 }
