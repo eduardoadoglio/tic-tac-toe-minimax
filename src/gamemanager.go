@@ -140,26 +140,22 @@ func (gameManager *GameManager) checkHorizontalWinner() bool {
 	return false
 }
 
-func (gameManager *GameManager) checkVerticalWinner() (bool, string) {
+func (gameManager *GameManager) checkVerticalWinner() bool {
 	gameBoard := gameManager.Board
+	currentPlayer := gameManager.CurrentPlayer
 	for i := range gameBoard.Board {
-		xWonVertical := true
-		oWonVertical := true
+		currentPlayerWonVertical := true
 		for j := range gameBoard.Board[i] {
-			if gameBoard.Board[j][i].Text != "X" {
-				xWonVertical = false
-			}
-			if gameBoard.Board[j][i].Text != "O" {
-				oWonVertical = false
+			if gameBoard.Board[j][i].Text != currentPlayer {
+				currentPlayerWonVertical = false
 			}
 		}
-		if xWonVertical {
-			return true, "X"
-		}else if oWonVertical {
-			return true, "O"
+		if currentPlayerWonVertical {
+			gameManager.setGameWinner(currentPlayer)
+			return true
 		}
 	}
-	return false, ""
+	return false
 }
 
 func (gameManager *GameManager) checkDiagonalWinner() (bool, string) {
@@ -213,7 +209,7 @@ func (gameManager *GameManager) handleGameOver() {
 
 func (gameManager *GameManager) isGameOver() bool {
 	horizontalWinner := gameManager.checkHorizontalWinner()
-	verticalWinner, _ := gameManager.checkVerticalWinner()
+	verticalWinner := gameManager.checkVerticalWinner()
 	diagonalWinner, _ := gameManager.checkDiagonalWinner()
 	isTied, _ := gameManager.checkForTies()
 	return horizontalWinner || verticalWinner || diagonalWinner || isTied
@@ -221,12 +217,9 @@ func (gameManager *GameManager) isGameOver() bool {
 
 func (gameManager *GameManager) getWinner() string {
 	horizontalWinner := gameManager.checkHorizontalWinner()
-	if horizontalWinner {
+	verticalWinner := gameManager.checkVerticalWinner()
+	if horizontalWinner || verticalWinner {
 		return gameManager.GameWinner
-	}
-	verticalWinner, winner := gameManager.checkVerticalWinner()
-	if verticalWinner {
-		return winner
 	}
 	diagonalWinner, winner := gameManager.checkDiagonalWinner()
 	if diagonalWinner {
