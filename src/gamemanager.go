@@ -199,8 +199,17 @@ func (gameManager *GameManager) checkForTies() bool {
 	return true
 }
 
+func (gameManager *GameManager) getWinnerNameBySymbol(winnerSymbol string) string {
+	if gameManager.Players.Human == winnerSymbol {
+		return "Human"
+	}else {
+		return "AI"
+	}
+}
+
 func (gameManager *GameManager) setWinIndicatorText() {
-	winText := gameManager.GameWinner + " won!"
+	winnerName := gameManager.getWinnerNameBySymbol(gameManager.GameWinner)
+	winText := winnerName + " won!"
 	gameManager.WinIndicator.SetText(winText)
 
 }
