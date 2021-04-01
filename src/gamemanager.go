@@ -67,8 +67,10 @@ func (gameManager *GameManager) minimax(gameBoard GameBoard, depth int, isMaximi
 		return scores[gameManager.getWinner()]
 	}
 	bestScore := math.MaxInt64
+	gameManager.setCurrentPlayer(gameManager.Players.Human)
 	if isMaximizing {
 		bestScore = math.MinInt64
+		gameManager.setCurrentPlayer(gameManager.Players.AI)
 	}
 	for i := range gameBoard.Board {
 		for j := range gameBoard.Board[i] {
@@ -202,20 +204,25 @@ func (gameManager *GameManager) checkForTies() bool {
 func (gameManager *GameManager) getWinnerNameBySymbol(winnerSymbol string) string {
 	if gameManager.Players.Human == winnerSymbol {
 		return "Human"
-	}else {
+	}else if gameManager.Players.AI == winnerSymbol{
 		return "AI"
+	} else {
+		return "tie"
 	}
 }
 
 func (gameManager *GameManager) setWinIndicatorText() {
 	winnerName := gameManager.getWinnerNameBySymbol(gameManager.GameWinner)
 	winText := winnerName + " won!"
+	if winnerName == "tie" {
+		winText = "It was a tie!"
+	}
 	gameManager.WinIndicator.SetText(winText)
 
 }
 
 func (gameManager *GameManager) handleGameOver() {
-	gameManager.GameWinner = gameManager.CurrentPlayer
+	gameManager.GameWinner = gameManager.getWinner()
 	gameManager.GameState = "OVER"
 	gameManager.setWinIndicatorText()
 }
