@@ -67,10 +67,8 @@ func (gameManager *GameManager) minimax(gameBoard GameBoard, depth int, isMaximi
 		return scores[gameManager.getWinner()]
 	}
 	bestScore := math.MaxInt64
-	gameManager.setCurrentPlayer(gameManager.Players.Human)
 	if isMaximizing {
 		bestScore = math.MinInt64
-		gameManager.setCurrentPlayer(gameManager.Players.AI)
 	}
 	for i := range gameBoard.Board {
 		for j := range gameBoard.Board[i] {
