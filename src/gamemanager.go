@@ -125,20 +125,13 @@ func (gameManager *GameManager) setGameWinner(gameWinner string) {
 	gameManager.GameWinner = gameWinner
 }
 
-
 func (gameManager *GameManager) checkHorizontalWinner() bool {
 	gameBoard := gameManager.Board
-	currentPlayer := gameManager.CurrentPlayer
-	for i := range gameBoard.Board {
-		currentPlayerWonHorizontal := true
-		for _, button := range gameBoard.Board[i] {
-			if button.Text != currentPlayer {
-				currentPlayerWonHorizontal = false
-				continue
-			}
-		}
-		if currentPlayerWonHorizontal {
-			gameManager.setGameWinner(currentPlayer)
+	for i := 0; i < 3; i++ {
+		if gameBoard.Board[i][0].Text == gameBoard.Board[i][1].Text &&
+			gameBoard.Board[i][1].Text == gameBoard.Board[i][2].Text &&
+			gameBoard.Board[i][0].Text != "" {
+			gameManager.setGameWinner(gameBoard.Board[i][0].Text)
 			return true
 		}
 	}
@@ -147,17 +140,11 @@ func (gameManager *GameManager) checkHorizontalWinner() bool {
 
 func (gameManager *GameManager) checkVerticalWinner() bool {
 	gameBoard := gameManager.Board
-	currentPlayer := gameManager.CurrentPlayer
-	for i := range gameBoard.Board {
-		currentPlayerWonVertical := true
-		for j := range gameBoard.Board[i] {
-			if gameBoard.Board[j][i].Text != currentPlayer {
-				currentPlayerWonVertical = false
-				continue
-			}
-		}
-		if currentPlayerWonVertical {
-			gameManager.setGameWinner(currentPlayer)
+	for i := 0; i < 3; i++ {
+		if gameBoard.Board[0][i].Text == gameBoard.Board[1][i].Text &&
+			gameBoard.Board[1][i].Text == gameBoard.Board[2][i].Text &&
+			gameBoard.Board[0][i].Text != "" {
+			gameManager.setGameWinner(gameBoard.Board[0][i].Text)
 			return true
 		}
 	}
@@ -166,24 +153,17 @@ func (gameManager *GameManager) checkVerticalWinner() bool {
 
 func (gameManager *GameManager) checkDiagonalWinner() bool {
 	gameBoard := gameManager.Board
-	currentPlayer := gameManager.CurrentPlayer
-	diagonals := [][]*widget.Button {
-		{gameBoard.Board[0][0], gameBoard.Board[1][1], gameBoard.Board[2][2]},
-		{gameBoard.Board[0][2], gameBoard.Board[1][1], gameBoard.Board[2][0]},
+	if gameBoard.Board[0][0].Text == gameBoard.Board[1][1].Text &&
+		gameBoard.Board[1][1].Text == gameBoard.Board[2][2].Text &&
+		gameBoard.Board[0][0].Text != "" {
+		gameManager.setGameWinner(gameBoard.Board[0][0].Text)
+		return true
 	}
-
-	for i := range diagonals {
-		currentPlayerWonDiagonal := true
-		for _, button := range diagonals[i] {
-			if button.Text != currentPlayer {
-				currentPlayerWonDiagonal = false
-				continue
-			}
-		}
-		if currentPlayerWonDiagonal {
-			gameManager.setGameWinner(currentPlayer)
-			return true
-		}
+	if gameBoard.Board[0][2].Text == gameBoard.Board[1][1].Text &&
+		gameBoard.Board[1][1].Text == gameBoard.Board[2][0].Text &&
+		gameBoard.Board[0][2].Text != "" {
+		gameManager.setGameWinner(gameBoard.Board[0][2].Text)
+		return true
 	}
 	return false
 }
@@ -197,8 +177,13 @@ func (gameManager *GameManager) checkForTies() bool {
 			}
 		}
 	}
-	gameManager.setGameWinner("TIE")
-	return true
+	// Check if end state isn't also win state
+	if !gameManager.checkHorizontalWinner() && !gameManager.checkVerticalWinner() &&
+		!gameManager.checkDiagonalWinner() {
+		gameManager.setGameWinner("TIE")
+		return true
+	}
+	return false
 }
 
 func (gameManager *GameManager) getWinnerNameBySymbol(winnerSymbol string) string {
